@@ -37,8 +37,9 @@ h2{font-size:clamp(2rem,6vw,3.2rem);text-align:center;margin-bottom:2rem;color:v
 .story{max-width:640px;text-align:center;font-size:1.15rem}
 .story p+p{margin-top:1.2rem}
 .gallery{columns:3 240px;column-gap:.8rem}
-.gallery img{width:100%;display:block;margin-bottom:.8rem;border-radius:6px;cursor:zoom-in;background:var(--bg2);transition:transform .25s}
-.gallery img:hover{transform:scale(1.02)}
+.gallery img{width:100%;display:block;margin-bottom:.8rem;border-radius:6px;cursor:zoom-in;background:var(--bg2);opacity:0;transform:translateY(20px);transition:opacity .9s ease,transform .9s ease}
+.gallery img.in{opacity:1;transform:none}
+.gallery img.in:hover{transform:scale(1.02)}
 video{width:100%;max-width:420px;display:block;margin:0 auto;border-radius:8px}
 .letter{max-width:640px;margin:0 auto;text-align:center;background:var(--bg2);border:1px solid #6b2b47;border-radius:10px;padding:clamp(1.5rem,6vw,3rem);font-family:var(--serif);font-size:1.3rem;line-height:1.75}
 .letter p+p{margin-top:1rem}
@@ -59,7 +60,7 @@ footer{position:relative;z-index:1;text-align:center;padding:3rem 1rem;color:var
 #lb img{max-width:100%;max-height:92vh;border-radius:6px}
 #lb button{position:absolute;top:env(safe-area-inset-top,0px);right:1rem;margin-top:1rem;background:none;border:0;color:var(--ivory);font-size:2.2rem;cursor:pointer}
 a:focus-visible,button:focus-visible{outline:2px solid var(--gold)}
-@media (prefers-reduced-motion:reduce){#hearts,.pop{display:none}.rv{opacity:1;transform:none;transition:none}.latido{animation:none}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){#hearts,.pop{display:none}.gallery img{opacity:1;transform:none;transition:none}.rv{opacity:1;transform:none;transition:none}.latido{animation:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -220,12 +221,20 @@ tick(); setInterval(tick, 1000);
 
 // Galería + visor
 const gal = $("gal"), lb = $("lb"), lbImg = lb.querySelector("img");
+const ioFoto = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ x.target.classList.add("in"); ioFoto.unobserve(x.target); } }), {threshold:0, rootMargin:"0px 0px -5% 0px"});
+let fallos = 0;
 FOTOS.forEach((f, i) => {
   const im = new Image();
-  im.src = encodeURI(f); im.loading = "lazy"; im.alt = "Nuestro recuerdo " + (i+1);
-  im.onerror = () => im.remove();
+  im.alt = "Nuestro recuerdo " + (i+1);
+  im.decoding = "async";
+  im.onerror = () => {
+    im.remove();
+    if (++fallos === FOTOS.length) gal.insertAdjacentHTML("beforebegin", '<p class="story">No encuentro las fotos: esta página tiene que estar en GitHub Pages, en la misma carpeta que las fotos.</p>');
+  };
   im.onclick = () => { lbImg.src = im.src; lb.classList.add("on"); };
+  im.src = encodeURI(f);
   gal.appendChild(im);
+  ioFoto.observe(im);
 });
 lb.onclick = () => lb.classList.remove("on");
 document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("on"); });
@@ -267,7 +276,7 @@ $("btn").onclick = e => {
 };
 
 // Las secciones aparecen suavemente al bajar
-const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ x.target.classList.add("in"); io.unobserve(x.target); } }), {threshold:.12});
+const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ x.target.classList.add("in"); io.unobserve(x.target); } }), {threshold:0, rootMargin:"0px 0px -8% 0px"});
 document.querySelectorAll("section,footer").forEach(el => { el.classList.add("rv"); io.observe(el); });
 </script>
 </body>
