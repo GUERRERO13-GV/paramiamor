@@ -55,6 +55,7 @@ h2::after{content:"♥";display:block;font-size:1rem;color:var(--gold);margin-to
 @keyframes lat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.1)}}
 .btn{margin-top:2rem;background:var(--rose);color:var(--bg);border:0;border-radius:99px;padding:.9rem 2rem;font:400 1.05rem var(--sans);cursor:pointer}
 footer{position:relative;z-index:1;text-align:center;padding:3rem 1rem;color:var(--rose);font-family:var(--serif);font-size:1.4rem;font-style:italic}
+#mus{position:fixed;right:1rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:30;width:3rem;height:3rem;border-radius:50%;border:1px solid var(--rose);background:rgba(42,15,28,.85);color:var(--rose);font-size:1rem;cursor:pointer}
 #lb{position:fixed;inset:0;background:rgba(20,5,12,.94);display:none;align-items:center;justify-content:center;z-index:10;padding:1rem}
 #lb.on{display:flex}
 #lb img{max-width:100%;max-height:92vh;border-radius:6px}
@@ -104,7 +105,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold)}
 
 <section>
   <h2>Un recuerdo en movimiento</h2>
-  <video controls playsinline preload="metadata" src="v24044gl0000cvae697og65ndi4mgr8g.MP4"></video>
+  <video controls playsinline preload="metadata" src="CANO, RVFV - Orgullosa De Papá (VIDEOCLIP OFICIAL) TRIANA.mp3"></video>
 </section>
 
 <section>
@@ -171,6 +172,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold)}
 </section>
 
 <footer>Feliz segundo aniversario ♥</footer>
+
+<audio id="musica" src="orgullosa.mp3" loop preload="auto"></audio>
+<button id="mus" aria-label="Reanudar música">▶</button>
 
 <div id="lb" role="dialog" aria-label="Foto ampliada"><button aria-label="Cerrar">×</button><img alt=""></div>
 
@@ -278,6 +282,21 @@ $("btn").onclick = e => {
 // Las secciones aparecen suavemente al bajar
 const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ x.target.classList.add("in"); io.unobserve(x.target); } }), {threshold:0, rootMargin:"0px 0px -8% 0px"});
 document.querySelectorAll("section,footer").forEach(el => { el.classList.add("rv"); io.observe(el); });
+
+// Música de fondo con botón fijo para pausar y reanudar
+const mus = $("musica"), bm = $("mus");
+mus.volume = .6;
+function icono(){ const on = !mus.paused; bm.textContent = on ? "❚❚" : "▶"; bm.setAttribute("aria-label", on ? "Pausar música" : "Reanudar música"); }
+function empezar(e){ if (e.target !== bm) mus.play().catch(() => {}); }
+function quitar(){ ["pointerdown","keydown"].forEach(t => document.removeEventListener(t, empezar)); }
+mus.addEventListener("play", () => { icono(); quitar(); });
+mus.addEventListener("pause", icono);
+mus.addEventListener("error", () => { bm.hidden = true; });
+bm.onclick = e => { e.stopPropagation(); mus.paused ? mus.play().catch(() => {}) : mus.pause(); };
+// Los navegadores bloquean el audio hasta que la persona toca la pantalla: se intenta ya y, si no, al primer toque
+mus.play().catch(() => {});
+["pointerdown","keydown"].forEach(t => document.addEventListener(t, empezar));
+icono();
 </script>
 </body>
 </html>
